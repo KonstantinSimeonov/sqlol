@@ -96,3 +96,40 @@ explain analyze
         (select * from salesmen where email is null limit 10)
     )
     select * from sorted_by_email limit 10;
+
+SELECT c.relname AS name,
+  pg_size_pretty(sum(c.relpages::bigint*8192)::bigint) AS size
+FROM pg_class c
+LEFT JOIN pg_namespace n ON (n.oid = c.relnamespace)
+WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
+AND n.nspname !~ '^pg_toast'
+AND c.relkind='i'
+GROUP BY c.relname
+ORDER BY sum(c.relpages) DESC;
+
+drop index email_idx;
+-- smaller index, 16KB instead of 2056KB
+create index email_idx on salesmen(email) where email is not null;
+-- performance degrades due to the second query requiring a seq scan
+explain analyze
+    with sorted_by_email as (
+        (select * from salesmen where email is not null order by email desc limit 10)
+        union
+        (select * from salesmen where email is null limit 10)
+    )
+    select * from sorted_by_email limit 10;
+
+-- same perf, maybe even better
+explain analyze select * from salesmen where email is not null order by email desc limit 10;
+-- requires sequential scan now
+explain analyze select * from salesmen where email is null limit 10;
+
+SELECT c.relname AS name,
+  pg_size_pretty(sum(c.relpages::bigint*8192)::bigint) AS size
+FROM pg_class c
+LEFT JOIN pg_namespace n ON (n.oid = c.relnamespace)
+WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
+AND n.nspname !~ '^pg_toast'
+AND c.relkind='i'
+GROUP BY c.relname
+ORDER BY sum(c.relpages) DESC;
