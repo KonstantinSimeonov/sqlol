@@ -97,15 +97,7 @@ explain analyze
     )
     select * from sorted_by_email limit 10;
 
-SELECT c.relname AS name,
-  pg_size_pretty(sum(c.relpages::bigint*8192)::bigint) AS size
-FROM pg_class c
-LEFT JOIN pg_namespace n ON (n.oid = c.relnamespace)
-WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
-AND n.nspname !~ '^pg_toast'
-AND c.relkind='i'
-GROUP BY c.relname
-ORDER BY sum(c.relpages) DESC;
+\i ./inspect/index-sizes.sql
 
 drop index email_idx;
 -- smaller index, 16KB instead of 2056KB
@@ -124,12 +116,4 @@ explain analyze select * from salesmen where email is not null order by email de
 -- requires sequential scan now
 explain analyze select * from salesmen where email is null limit 10;
 
-SELECT c.relname AS name,
-  pg_size_pretty(sum(c.relpages::bigint*8192)::bigint) AS size
-FROM pg_class c
-LEFT JOIN pg_namespace n ON (n.oid = c.relnamespace)
-WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
-AND n.nspname !~ '^pg_toast'
-AND c.relkind='i'
-GROUP BY c.relname
-ORDER BY sum(c.relpages) DESC;
+\i ./inspect/index-sizes.sql

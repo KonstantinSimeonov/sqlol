@@ -47,13 +47,15 @@ drop index if exists lang_idx;
 
 drop index if exists pagination_idx;
 create index pagination_idx on pastes(language, created_at);
+\i ./inspect/index-sizes.sql
 
 \qecho running with btree compound index on (language, created_at)
--- first page is faster, rest is still slow
+-- no perf improvement for queries that don't filter on language
 \i ./pagination/offset-limit-queries.sql
 
 drop index if exists pagination_idx;
 create index pagination_idx on pastes(created_at, language);
+\i ./inspect/index-sizes.sql
 
 \qecho running with btree compound index on (created_at, language)
 -- first page is okayish, rest is still slow
@@ -62,23 +64,27 @@ create index pagination_idx on pastes(created_at, language);
 drop index if exists pagination_idx;
 create index language_idx on pastes(language);
 create index created_at_idx on pastes(created_at);
+\i ./inspect/index-sizes.sql
 
 \qecho running with 2 indexes: one on language, one on created_at
--- doesn't help much
--- performs well only on queries that only one of the indexed columns
+-- negligably worse perf for pages
+-- marginally better for page count
 \i ./pagination/offset-limit-queries.sql
 
 drop index if exists language_idx;
 drop index if exists created_at_idx;
 
 -- desc on created_at doesn't make much difference
-create index pagination_idx on pastes(created_at, language) where deleted_at is not null;
+create index pagination_idx on pastes(created_at, language) where deleted_at is null;
+\i ./inspect/index-sizes.sql
 
+SET enable_seqscan to off;
 \qecho running with btree compound index on (created_at, language)
 \qecho with where condition on deleted_at
--- much faster for all queries,
+-- much faster for all queries except page count,
 -- seems like the index predicate prevents
 -- the need to sort/filter
 \i ./pagination/offset-limit-queries.sql
+SET enable_seqscan to on;
 
 drop index if exists pagination_idx;

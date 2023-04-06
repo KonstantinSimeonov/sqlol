@@ -1,11 +1,11 @@
 \qecho page count
-explain analyze
+explain (analyze, settings on)
 select count(1) / 20 as page_count
 from pastes
 where
     language = 'js'
     and created_at > '01/01/2002'
-    and deleted_at is not null;
+    and deleted_at is null;
 
 \qecho get page 0
 explain analyze
@@ -13,7 +13,7 @@ select * from pastes
 where
     language = 'js'
     and created_at > '01/01/2002'
-    and deleted_at is not null
+    and deleted_at is null
 order by created_at desc
 limit 20;
 
@@ -23,7 +23,7 @@ select * from pastes
 where
     language = 'js'
     and created_at > '01/01/2002'
-    and deleted_at is not null
+    and deleted_at is null
 order by created_at desc
 offset 180
 limit 20;
@@ -33,7 +33,7 @@ explain analyze
 select * from pastes
 where
     created_at > '01/01/2002'
-    and deleted_at is not null
+    and deleted_at is null
 order by created_at desc
 offset 180
 limit 20;
