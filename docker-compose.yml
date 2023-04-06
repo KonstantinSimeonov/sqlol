@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres
+    image: sibedge/postgres-plv8
     restart: always
     ports:
       - "6666:5432"
