@@ -63,7 +63,7 @@ int main() {
                 content: get_sources[lang](i),
                 language: lang,
                 created_at: new Date(created_at),
-                deleted_at: i % 500 ? new Date(rnd_int(created_at, end_ts)) : null
+                deleted_at: i % 500 === 0 ? new Date(rnd_int(created_at, end_ts)) : null
             }
         }
     )
