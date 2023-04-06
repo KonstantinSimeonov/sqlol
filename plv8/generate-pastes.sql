@@ -8,6 +8,8 @@ create type paste_rec as (
     deleted_at timestamp
 );
 
+create extension if not exists plv8;
+
 create function generate_pastes(count int) returns setof paste_rec as
 $$
     const rnd_int = (l, h) => l + Math.floor(Math.random() * (h - l))

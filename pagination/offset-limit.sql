@@ -3,15 +3,19 @@
 
 drop table if exists pastes;
 
-create extension if not exists plv8;
-
 create table pastes (
     id serial primary key,
     content text not null,
     language varchar(20),
-    created_at timestamp default(now()),
+    created_at timestamp default(now()) not null,
     deleted_at timestamp default(null)
 );
 
-insert into pastes(content, language, created_at, deleted_at)
-select * from generate_pastes(10000);
+do $$
+begin
+    for i in 1..10 loop
+        insert into pastes(content, language, created_at, deleted_at)
+        select * from generate_pastes(100000);
+    end loop;
+end;
+$$;
